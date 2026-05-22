@@ -153,7 +153,7 @@ export default function WriteScreen() {
         </TouchableOpacity>
 
         {/* Loading / Image Preview */}
-        {generating && (
+        {imageUrl && generating && (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#D4A574" />
             <Text style={styles.loadingText}>
@@ -162,9 +162,9 @@ export default function WriteScreen() {
           </View>
         )}
 
-        {imageUrl && !generating && (
+        {imageUrl && (
           <View style={styles.imagePreviewContainer}>
-            {!imageLoaded && (
+            {!imageLoaded && !generating && (
               <View style={styles.imageLoadingOverlay}>
                 <ActivityIndicator size="small" color="#D4A574" />
               </View>
@@ -173,8 +173,14 @@ export default function WriteScreen() {
               source={{ uri: imageUrl }}
               style={styles.previewImage}
               resizeMode="contain"
-              onLoadEnd={handleImageLoadEnd}
-              onError={handleImageError}
+              onLoad={() => {
+                setGenerating(false);
+                setImageLoaded(true);
+              }}
+              onError={() => {
+                setGenerating(false);
+                Alert.alert('오류', '이미지를 불러오지 못했습니다. 다시 시도해주세요.');
+              }}
             />
           </View>
         )}
