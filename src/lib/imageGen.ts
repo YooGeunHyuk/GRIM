@@ -3,9 +3,8 @@ import { FAL_KEY, FAL_API_BASE } from './config';
 const STYLE_MAP: Record<string, string> = {
   watercolor: 'watercolor illustration, soft pastel colors, gentle brush strokes, emotional and nostalgic',
   fairytale: 'storybook illustration, warm magical atmosphere, whimsical and dreamy, rich gentle colors',
-  sketch: 'soft pencil sketch style, light and airy, minimalist with warm undertones',
+  sketch: 'pencil sketch, black and white, monochrome, fine hatching and crosshatching, hand-drawn on paper, no color, graphite texture, minimalist line art',
   vibrant: 'vibrant digital painting, warm sunlight, expressive rich colors, energetic yet soft',
-  night: 'night scene with soft moonlight, deep blues and warm yellows, calm and peaceful',
 };
 
 function extractMood(text: string): string {
@@ -43,7 +42,7 @@ function buildPrompt(content: string, style: string): string {
   const mood = extractMood(content);
   const setting = extractSetting(content);
 
-  return `${styleDesc}, ${setting}. Mood: ${mood}. Create an illustration directly inspired by this personal diary entry: "${maxContent}". Beautiful lighting, emotional atmosphere, cinematic composition, Korean urban setting, highly detailed. --ar 4:3`;
+  return `${styleDesc}, ${setting}. Mood: ${mood}. Create an illustration directly inspired by this personal diary entry: "${maxContent}". Beautiful lighting, emotional atmosphere, cinematic composition, Korean setting, highly detailed.`;
 }
 
 export async function generateImage(

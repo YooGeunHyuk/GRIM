@@ -36,20 +36,12 @@ export default function WriteScreen() {
 
   // Get today's date label
   const todayLabel = formatDate(getTodayDate());
-  const styles_list = ['watercolor', 'fairytale', 'sketch', 'vibrant', 'night'];
-  const styleIcons: Record<string, string> = {
-    watercolor: '🎨',
-    fairytale: '🧚',
-    sketch: '✏️',
-    vibrant: '🌈',
-    night: '🌙',
-  };
+  const styles_list = ['watercolor', 'fairytale', 'sketch', 'vibrant'];
   const styleLabels: Record<string, string> = {
     watercolor: '수채화',
     fairytale: '동화',
     sketch: '스케치',
-    vibrant: '선명',
-    night: '야경',
+    vibrant: '채색',
   };
   useEffect(() => {
     (async () => {
@@ -175,7 +167,6 @@ export default function WriteScreen() {
               onPress={() => setSelectedStyle(s)}
               activeOpacity={0.7}
             >
-              <Text style={styles.styleChipIcon}>{styleIcons[s]}</Text>
               <Text
                 style={[
                   styles.styleChipLabel,
@@ -194,7 +185,7 @@ export default function WriteScreen() {
           onPress={handleGenerateImage}
           activeOpacity={0.8}
         >
-          <Text style={styles.buttonText}>🎨 그림 그리기!</Text>
+          <Text style={styles.buttonText}>그림 그리기</Text>
         </TouchableOpacity>
 
         {/* Loading / Image Preview */}
@@ -443,9 +434,6 @@ const styles = StyleSheet.create({
   styleChipActive: {
     backgroundColor: '#F5E6D3',
     borderColor: '#D4A574',
-  },
-  styleChipIcon: {
-    fontSize: 14,
   },
   styleChipLabel: {
     fontSize: 13,
