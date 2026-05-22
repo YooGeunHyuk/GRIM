@@ -32,8 +32,25 @@ export default function WriteScreen() {
   const [entryId, setEntryId] = useState<string | null>(null);
   const [existingCreatedAt, setExistingCreatedAt] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const [selectedStyle, setSelectedStyle] = useState('watercolor');
 
-  // Load today's existing entry on mount
+  // Get today's date label
+  const todayLabel = formatDate(getTodayDate());
+  const styles_list = ['watercolor', 'fairytale', 'sketch', 'vibrant', 'night'];
+  const styleIcons: Record<string, string> = {
+    watercolor: '🎨',
+    fairytale: '🧚',
+    sketch: '✏️',
+    vibrant: '🌈',
+    night: '🌙',
+  };
+  const styleLabels: Record<string, string> = {
+    watercolor: '수채화',
+    fairytale: '동화',
+    sketch: '스케치',
+    vibrant: '선명',
+    night: '야경',
+  };
   useEffect(() => {
     (async () => {
       const today = getTodayDate();
@@ -61,7 +78,7 @@ export default function WriteScreen() {
     setImagePrompt(null);
 
     // generateImageUrl is synchronous — it builds the URL from content
-    const url = generateImageUrl(content);
+    const url = generateImageUrl(content, selectedStyle);
     if (!url) {
       Alert.alert('오류', '이미지를 생성할 수 없습니다. 내용을 확인해주세요.');
       setGenerating(false);
@@ -71,7 +88,7 @@ export default function WriteScreen() {
     // Store the prompt used for regeneration
     setImagePrompt(content.slice(0, 100));
     setImageUrl(url);
-  }, [content]);
+  }, [content, selectedStyle]);
 
   const handleImageLoadEnd = useCallback(() => {
     setGenerating(false);
@@ -115,8 +132,7 @@ export default function WriteScreen() {
     }
   }, [content, imageUrl, imagePrompt, entryId, existingCreatedAt]);
 
-  const todayLabel = formatDate(getTodayDate());
-
+  // ===== RENDER =====
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView
@@ -141,6 +157,32 @@ export default function WriteScreen() {
             multiline
             textAlignVertical="top"
           />
+        </View>
+
+        {/* Style Selector */}
+        <Text style={styles.styleLabel}>그림 스타일</Text>
+        <View style={styles.styleRow}>
+          {styles_list.map((s) => (
+            <TouchableOpacity
+              key={s}
+              style={[
+                styles.styleChip,
+                selectedStyle === s && styles.styleChipActive,
+              ]}
+              onPress={() => setSelectedStyle(s)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.styleChipIcon}>{styleIcons[s]}</Text>
+              <Text
+                style={[
+                  styles.styleChipLabel,
+                  selectedStyle === s && styles.styleChipLabelActive,
+                ]}
+              >
+                {styleLabels[s]}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </View>
 
         {/* Image Generation Button */}
@@ -182,6 +224,15 @@ export default function WriteScreen() {
                 Alert.alert('오류', '이미지를 불러오지 못했습니다. 다시 시도해주세요.');
               }}
             />
+            {imageLoaded && !generating && (
+              <TouchableOpacity
+                style={styles.redrawButton}
+                onPress={handleGenerateImage}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.redrawButtonText}>🔄 다시 그리기</Text>
+              </TouchableOpacity>
+            )}
           </View>
         )}
 
@@ -359,6 +410,61 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 320,
     borderRadius: 20,
+  },
+
+  /* Style Selector */
+  styleLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#A0846B',
+    marginBottom: 8,
+    marginLeft: 4,
+  },
+  styleRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 20,
+  },
+  styleChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+    backgroundColor: '#FFFDF7',
+    borderWidth: 1,
+    borderColor: '#F0E3D0',
+    gap: 4,
+  },
+  styleChipActive: {
+    backgroundColor: '#F5E6D3',
+    borderColor: '#D4A574',
+  },
+  styleChipIcon: {
+    fontSize: 14,
+  },
+  styleChipLabel: {
+    fontSize: 13,
+    color: '#A0846B',
+    fontWeight: '500',
+  },
+  styleChipLabelActive: {
+    color: '#5C4033',
+    fontWeight: '700',
+  },
+
+  /* Redraw Button */
+  redrawButton: {
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#F0E3D0',
+  },
+  redrawButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#D4A574',
   },
 
   bottomSpacer: {
