@@ -1,10 +1,10 @@
 import { FAL_KEY, FAL_API_BASE } from './config';
 
 const STYLE_MAP: Record<string, string> = {
-  watercolor: 'watercolor illustration style',
-  fairytale: 'storybook illustration style',
-  sketch: 'pencil sketch, black and white, monochrome, fine hatching and crosshatching, hand-drawn on paper, no color, graphite texture',
-  vibrant: 'vibrant digital painting style',
+  watercolor: `Genuine traditional watercolor painting on cold-pressed paper. Delicate transparent pigment washes layered from light to dark, with visible paper grain texture showing through thin areas. Soft feathered edges where wet colors bleed naturally. No opaque white or black outlines -- the white of the paper itself creates highlights. Highly diluted paint creates subtle graduated washes and color blooms with organic edges. The finish is matte, luminous, and semi-transparent with the tooth of watercolor paper visible. Paint spatters and brush texture present. Gentle color transitions, soft atmospheric perspective. Rendered as a physical watercolor artwork, not digital.`,
+  fairytale: `Studio Ghibli animated film style by Hayao Miyazaki. Soft cel-shaded rendering with warm pastel color palettes. Rounded organic character forms with gentle facial features. Lushly detailed background environments painted with visible soft brushwork. Lighting uses warm diffuse sunlight with gentle shadows -- everything glows with a nostalgic, hand-painted quality. Soft color transitions, not hard cel shading. A gentle storybook atmosphere with meticulously detailed natural elements: billowing clouds, wind-swept grass, softly glowing light through trees. Charming, whimsical, deeply emotional animation style. Korean countryside and city settings.`,
+  sketch: `Pure black technical pen ink on bright white paper. NO COLOR whatsoever -- monochrome black and white only. Rendered entirely in high-contrast black line art using a fine Rotring technical pen (0.1mm to 0.5mm nibs). Extensive crosshatching and stippling for value and depth. Precise, deliberate strokes that define form through contour lines and directional hatching. No fill, no solid black areas, no shading. Highlights created purely by leaving the white paper blank. No smudging, no wash, no digital gradient. Visible paper tooth texture. Clean, meticulous architectural illustration style linework. Hand-drawn, not digital.`,
+  vibrant: `Painted digital illustration in a stylized concept art aesthetic. Visible textured brush strokes across the entire image -- no photorealism, no photography, no smooth airbrushing, no photographic skin texture. Bold, stylized color palettes with painterly blending. Strokes of opaque paint-like color follow the form and overlap each other, creating an artistic hand-crafted look. High-end game concept art or illustrated storybook style. Matte and painterly finish with purposeful brush texture in both shadows and highlights. Expressive, artistic, clearly a painting not a photograph. Rendered illustration style, not realistic.`,
 };
 
 /** Extract main mood from Korean diary text */
@@ -61,16 +61,16 @@ function extractTime(text: string): string {
 /** Extract location/setting from Korean text */
 function extractLocation(text: string): string {
   const lower = text.toLowerCase();
-  if (/도심|도시|시내|길|거리|서울/.test(lower)) return 'on a city street, urban landscape, surrounded by buildings';
-  if (/산|등산|자연|숲|공원/.test(lower)) return 'in a park, surrounded by nature and trees, peaceful greenery';
-  if (/바다|바닷가|파도|해변|해변가/.test(lower)) return 'at the beach, ocean waves, sandy shore';
-  if (/카페/.test(lower)) return 'inside a cozy cafe, warm interior';
-  if (/회사|사무실|직장|오피스/.test(lower)) return 'at the office, professional workspace';
-  if (/학교/.test(lower)) return 'at school, campus';
-  if (/집|방|자택/.test(lower)) return 'at home, cozy room, personal space';
-  if (/호수|강|계곡/.test(lower)) return 'by the lake, riverside, calm water';
-  if (/시장|마트/.test(lower)) return 'at a market, bustling with people and goods';
-  return 'outdoors';
+  if (/도심|도시|시내|길|거리|서울/.test(lower)) return 'on a city street, Korean urban landscape, surrounded by buildings';
+  if (/산|등산|자연|숲|공원/.test(lower)) return 'in a Korean park, surrounded by nature and trees, peaceful greenery';
+  if (/바다|바닷가|파도|해변|해변가/.test(lower)) return 'at the Korean beach, ocean waves, sandy shore';
+  if (/카페/.test(lower)) return 'inside a cozy Korean cafe, warm interior, window view';
+  if (/회사|사무실|직장|오피스/.test(lower)) return 'at the office, Korean workplace, desk and workspace';
+  if (/학교/.test(lower)) return 'at school, Korean campus, classroom';
+  if (/집|방|자택/.test(lower)) return 'at home, cozy Korean room, personal space';
+  if (/호수|강|계곡/.test(lower)) return 'by the lake, riverside, calm water, Korean nature';
+  if (/시장|마트/.test(lower)) return 'at a Korean market, bustling with people and goods';
+  return 'outdoors in a Korean town';
 }
 
 /** Extract objects/items/scene details from Korean text */
@@ -78,44 +78,37 @@ function extractDetails(text: string): string {
   const lower = text.toLowerCase();
   const details: string[] = [];
 
-  if (/강아지|개|멍멍|댕댕|반려견/.test(lower)) details.push('a cute dog companion');
-  if (/고양이|냥이|고냥이/.test(lower)) details.push('a cat');
+  if (/강아지|개|멍멍|댕댕|반려견/.test(lower)) details.push('a cute dog companion, a small pet dog');
+  if (/고양이|냥이|고냥이/.test(lower)) details.push('a cat, a feline friend');
   if (/커피|아메리카노|라떼/.test(lower)) details.push('holding a warm cup of coffee');
-  if (/차|tea/.test(lower)) details.push('a cup of tea');
-  if (/책/.test(lower)) details.push('reading a book');
-  if (/음악|노래|뮤직/.test(lower)) details.push('listening to music');
-  if (/꽃/.test(lower)) details.push('flowers blooming');
+  if (/차|tea/.test(lower)) details.push('a warm cup of tea');
+  if (/책/.test(lower)) details.push('holding a book, reading');
+  if (/음악|노래|뮤직/.test(lower)) details.push('listening to music with earphones');
+  if (/꽃/.test(lower)) details.push('beautiful flowers blooming');
   if (/자전거/.test(lower)) details.push('riding a bicycle');
-  if (/버스/.test(lower)) details.push('on a bus');
-  if (/지하철|전철|메트로/.test(lower)) details.push('on the subway');
-  if (/택시/.test(lower)) details.push('in a taxi');
+  if (/버스/.test(lower)) details.push('riding on a city bus, looking out the window');
+  if (/지하철|전철|메트로/.test(lower)) details.push('on the subway train');
+  if (/택시/.test(lower)) details.push('inside a taxi cab');
   if (/우산/.test(lower)) details.push('holding an umbrella');
-  if (/운동|런닝|달리기|조깅/.test(lower)) details.push('exercising, jogging');
-  if (/산책|걷|걸었/.test(lower)) details.push('taking a peaceful walk');
-  if (/맛있|음식|밥|요리|먹/.test(lower)) details.push('delicious food, a meal');
-  if (/술|맥주|소주|와인/.test(lower)) details.push('a glass of drink');
-  if (/친구/.test(lower)) details.push('with a friend');
-  if (/가족/.test(lower)) details.push('with family');
-  if (/연인|남친|여친|데이트/.test(lower)) details.push('on a date with a loved one');
-  if (/창문|window/.test(lower)) details.push('large window view');
-  if (/햇빛|햇살|태양/.test(lower)) details.push('warm sunlight streaming in');
+  if (/운동|런닝|달리기|조깅/.test(lower)) details.push('jogging, exercising, active movement');
+  if (/산책|걷|걸었/.test(lower)) details.push('taking a peaceful walk, strolling');
+  if (/맛있|음식|밥|요리|먹/.test(lower)) details.push('enjoying delicious food, a meal');
+  if (/술|맥주|소주|와인/.test(lower)) details.push('having a drink, a glass of soju');
+  if (/친구/.test(lower)) details.push('with a close friend');
+  if (/가족/.test(lower)) details.push('with family members');
+  if (/연인|남친|여친|데이트/.test(lower)) details.push('on a romantic date');
+  if (/창문|window/.test(lower)) details.push('looking out a window');
+  if (/햇빛|햇살|태양/.test(lower)) details.push('warm sunlight streaming through');
 
   return details.length > 0 ? details.join(', ') : 'everyday life scene';
 }
 
 /**
- * Build a prompt that puts visual elements FIRST, then style/mood
- * This is critical: Flux Schnell reads English best, so we translate
- * Korean diary text into a concrete scene description in English.
+ * Build a prompt that creates a scene matching the diary content.
+ * The scene (English) comes FIRST, then the detailed style description.
  */
 function buildPrompt(content: string, style: string): string {
   const styleDesc = STYLE_MAP[style] || STYLE_MAP.watercolor;
-  const styleQualities: Record<string, string> = {
-    watercolor: 'soft pastel colors, gentle brush strokes, emotional and nostalgic, dreamy atmosphere',
-    fairytale: 'warm magical atmosphere, whimsical and dreamy, rich gentle colors, enchanting',
-    sketch: 'minimalist, clean lines, paper texture, subtle shading, authentic hand-drawn feel',
-    vibrant: 'expressive rich colors, warm sunlight, energetic yet soft, vivid and alive',
-  };
 
   const subject = extractSubject(content);
   const weather = extractWeather(content);
@@ -123,14 +116,13 @@ function buildPrompt(content: string, style: string): string {
   const location = extractLocation(content);
   const details = extractDetails(content);
   const mood = extractMood(content);
-  const qualities = styleQualities[style] || styleQualities.watercolor;
 
   // Scene comes first — concrete, visual, in English
   const sceneParts = [subject, location, time, weather, details].filter(Boolean);
   const sceneDescription = sceneParts.join(' ');
 
-  // Full prompt: scene (front!) + style + mood + artist details + original diary (last)
-  return `${sceneDescription}. ${qualities}, ${styleDesc}. Mood: ${mood}. Cinematic composition, beautiful lighting, emotional atmosphere, Korean setting, highly detailed artistic illustration. Diary context: "${content.slice(0, 150)}"`;
+  // Full prompt: scene (front!) + style + mood + composition
+  return `${sceneDescription}. ${styleDesc} Mood: ${mood}. Cinematic composition, beautiful natural lighting, emotional storytelling atmosphere, Korean setting, highly detailed masterpiece. Diary context: "${content.slice(0, 120)}"`;
 }
 
 export async function generateImage(
