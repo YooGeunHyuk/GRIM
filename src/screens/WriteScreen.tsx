@@ -13,7 +13,7 @@ import {
   Platform,
 } from 'react-native';
 import type { DiaryEntry } from '../types';
-import { generateImageUrl } from '../lib/imageGen';
+import { generateImage } from '../lib/imageGen';
 import {
   upsertEntry,
   getEntryByDate,
@@ -66,7 +66,7 @@ export default function WriteScreen() {
     })();
   }, []);
 
-  const handleGenerateImage = useCallback(() => {
+  const handleGenerateImage = useCallback(async () => {
     if (!content.trim()) {
       Alert.alert('알림', '먼저 오늘의 이야기를 적어주세요 ✍️');
       return;
@@ -77,17 +77,20 @@ export default function WriteScreen() {
     setImageUrl(null);
     setImagePrompt(null);
 
-    // generateImageUrl is synchronous — it builds the URL from content
-    const url = generateImageUrl(content, selectedStyle);
-    if (!url) {
-      Alert.alert('오류', '이미지를 생성할 수 없습니다. 내용을 확인해주세요.');
-      setGenerating(false);
-      return;
-    }
+    try {
+      const result = await generateImage(content, selectedStyle);
+      if (result.error || !result.imageUrl) {
+        Alert.alert('오류', result.error || '이미지를 생성할 수 없습니다.');
+        setGenerating(false);
+        return;
+      }
 
-    // Store the prompt used for regeneration
-    setImagePrompt(content.slice(0, 100));
-    setImageUrl(url);
+      setImagePrompt(content.slice(0, 100));
+      setImageUrl(result.imageUrl);
+    } catch (err) {
+      Alert.alert('오류', '이미지 생성 중 문제가 발생했습니다.');
+      setGenerating(false);
+    }
   }, [content, selectedStyle]);
 
   const handleImageLoadEnd = useCallback(() => {

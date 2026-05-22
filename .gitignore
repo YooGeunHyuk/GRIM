@@ -39,3 +39,7 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# API keys (local only)
+src/lib/config.ts
+proxy/.env
