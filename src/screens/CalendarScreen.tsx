@@ -1,365 +1,526 @@
-import React, { useState, useCallback } from 'react';
+// V4 (2026-05-24): 달력 — 연속 heat-map 모자이크.
+//
+// - 첫 줄 = 첫 일기가 포함된 주 (없으면 현재월). 그 아래로 미래 60개월까지 끝없이 이어짐.
+// - 7열 격자, 셀 사이 GAP=3px. 월 사이 gap 없음 (연속 모자이크).
+// - 1일 셀에 "M/D" 라벨로 시각적 월 경계.
+// - floating 헤더가 viewable 최상단 row 기준으로 월 라벨 갱신 — row가 포함한 가장 늦은
+//   month를 사용하므로 "전달 마지막 주에 다음달 첫 셀이 들어오면" 즉시 다음달로 바뀜.
+// - 오늘 셀 = accent 테두리로 강조.
+// - 헤더 우측 [첫 일기] [오늘] 버튼 — 해당 row가 화면 윗줄로 오게 점프.
+
+import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   Image,
-  ScrollView,
-  SafeAreaView,
   StyleSheet,
+  FlatList,
+  Dimensions,
+  ViewToken,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { loadEntries, formatDate } from '../lib/storage';
+import { loadEntries } from '../lib/storage';
 import type { DiaryEntry } from '../types';
+import { MOOD_COLORS } from '../types';
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
+const GAP = 3;
+const H_PADDING = 16;
+const SCREEN_W = Dimensions.get('window').width;
+const CELL_SIZE = (SCREEN_W - H_PADDING * 2 - GAP * 6) / 7;
+const ROW_HEIGHT = CELL_SIZE + GAP;
+const FUTURE_MONTHS = 60; // 미래 5년치 미리 렌더
 
-function getYearMonth(date: Date): { year: number; month: number } {
-  return { year: date.getFullYear(), month: date.getMonth() };
-}
+type DayCell = {
+  year: number;
+  month: number;
+  day: number;
+  dateStr: string;
+  isToday: boolean;
+  entry?: DiaryEntry;
+} | null;
 
-function getMonthDays(year: number, month: number): (number | null)[] {
-  const firstDay = new Date(year, month, 1).getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const cells: (number | null)[] = [];
+type Row = {
+  id: string;
+  cells: DayCell[];
+  labelYear: number;
+  labelMonth: number;
+};
 
-  for (let i = 0; i < firstDay; i++) {
-    cells.push(null);
-  }
-  for (let d = 1; d <= daysInMonth; d++) {
-    cells.push(d);
-  }
-  return cells;
+function pad(n: number) {
+  return String(n).padStart(2, '0');
 }
 
 function dateString(year: number, month: number, day: number): string {
-  const m = String(month + 1).padStart(2, '0');
-  const d = String(day).padStart(2, '0');
-  return `${year}-${m}-${d}`;
+  return `${year}-${pad(month + 1)}-${pad(day)}`;
 }
 
-function isToday(year: number, month: number, day: number): boolean {
+function buildRows(
+  startYear: number,
+  startMonth: number,
+  endYear: number,
+  endMonth: number,
+  entriesByDate: Map<string, DiaryEntry>,
+  todayDs: string
+): { rows: Row[]; firstEntryRowIndex: number; todayRowIndex: number } {
+  const cells: DayCell[] = [];
+  const firstWeekday = new Date(startYear, startMonth, 1).getDay();
+  for (let i = 0; i < firstWeekday; i++) cells.push(null);
+
+  const cursor = new Date(startYear, startMonth, 1);
+  const end = new Date(endYear, endMonth + 1, 0);
+  while (cursor <= end) {
+    const y = cursor.getFullYear();
+    const m = cursor.getMonth();
+    const d = cursor.getDate();
+    const ds = dateString(y, m, d);
+    cells.push({
+      year: y,
+      month: m,
+      day: d,
+      dateStr: ds,
+      isToday: ds === todayDs,
+      entry: entriesByDate.get(ds),
+    });
+    cursor.setDate(d + 1);
+  }
+  while (cells.length % 7 !== 0) cells.push(null);
+
+  const rows: Row[] = [];
+  let firstEntryRowIndex = -1;
+  let todayRowIndex = -1;
+  for (let i = 0; i < cells.length; i += 7) {
+    const rowCells = cells.slice(i, i + 7);
+    let labelY = startYear;
+    let labelM = startMonth;
+    for (const c of rowCells) {
+      if (!c) continue;
+      if (c.year > labelY || (c.year === labelY && c.month > labelM)) {
+        labelY = c.year;
+        labelM = c.month;
+      }
+    }
+    const rowIdx = i / 7;
+    if (firstEntryRowIndex === -1 && rowCells.some((c) => c?.entry)) {
+      firstEntryRowIndex = rowIdx;
+    }
+    if (todayRowIndex === -1 && rowCells.some((c) => c?.isToday)) {
+      todayRowIndex = rowIdx;
+    }
+    rows.push({
+      id: `r${rowIdx}`,
+      cells: rowCells,
+      labelYear: labelY,
+      labelMonth: labelM,
+    });
+  }
+  return { rows, firstEntryRowIndex, todayRowIndex };
+}
+
+function getRange(firstEntryDate: Date | null): {
+  startYear: number;
+  startMonth: number;
+  endYear: number;
+  endMonth: number;
+} {
   const now = new Date();
-  return (
-    year === now.getFullYear() &&
-    month === now.getMonth() &&
-    day === now.getDate()
-  );
+  const startBase = firstEntryDate
+    ? new Date(firstEntryDate.getFullYear(), firstEntryDate.getMonth(), 1)
+    : new Date(now.getFullYear(), now.getMonth(), 1);
+  const endDate = new Date(now.getFullYear(), now.getMonth() + FUTURE_MONTHS, 1);
+  return {
+    startYear: startBase.getFullYear(),
+    startMonth: startBase.getMonth(),
+    endYear: endDate.getFullYear(),
+    endMonth: endDate.getMonth(),
+  };
 }
 
 export default function CalendarScreen() {
   const navigation = useNavigation<any>();
   const [entries, setEntries] = useState<DiaryEntry[]>([]);
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const { year, month } = getYearMonth(currentDate);
+  const [loaded, setLoaded] = useState(false);
+  const [visibleLabel, setVisibleLabel] = useState<{ year: number; month: number } | null>(null);
+  const [moodMode, setMoodMode] = useState(false);
+  const listRef = useRef<FlatList<Row>>(null);
+  const didInitialScroll = useRef(false);
 
   useFocusEffect(
     useCallback(() => {
       (async () => {
         const data = await loadEntries();
         setEntries(data);
+        setLoaded(true);
       })();
-    }, []),
+    }, [])
   );
 
-  const goToPrevMonth = () => {
-    setCurrentDate(new Date(year, month - 1, 1));
-  };
-
-  const goToNextMonth = () => {
-    setCurrentDate(new Date(year, month + 1, 1));
-  };
-
-  const entriesByDate = new Map<string, DiaryEntry>();
-  for (const entry of entries) {
-    entriesByDate.set(entry.date, entry);
-  }
-
-  const days = getMonthDays(year, month);
-
-  const handleDayPress = (day: number) => {
-    const dateStr = dateString(year, month, day);
-    const entry = entriesByDate.get(dateStr);
-    if (entry) {
-      navigation.navigate('Detail', { entryId: entry.id });
+  const { rows, firstEntryRowIndex, todayRowIndex } = useMemo(() => {
+    const byDate = new Map<string, DiaryEntry>();
+    let firstDate: Date | null = null;
+    for (const e of entries) {
+      byDate.set(e.date, e);
+      const d = new Date(e.date + 'T00:00:00');
+      if (!firstDate || d < firstDate) firstDate = d;
     }
-  };
+    const { startYear, startMonth, endYear, endMonth } = getRange(firstDate);
+    const now = new Date();
+    const todayDs = dateString(now.getFullYear(), now.getMonth(), now.getDate());
+    return buildRows(startYear, startMonth, endYear, endMonth, byDate, todayDs);
+  }, [entries]);
 
-  const sortedEntries = [...entries].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+  // 마운트 후 첫 진입 시 오늘 row가 윗줄로 오게 스크롤. 한 번만.
+  useEffect(() => {
+    if (!loaded || didInitialScroll.current || rows.length === 0 || todayRowIndex < 0) return;
+    didInitialScroll.current = true;
+    requestAnimationFrame(() => {
+      listRef.current?.scrollToIndex({
+        index: todayRowIndex,
+        animated: false,
+        viewPosition: 0,
+      });
+      const r = rows[todayRowIndex];
+      setVisibleLabel({ year: r.labelYear, month: r.labelMonth });
+    });
+  }, [loaded, rows, todayRowIndex]);
+
+  const jumpToRow = useCallback(
+    (idx: number) => {
+      if (idx < 0) return;
+      listRef.current?.scrollToIndex({ index: idx, animated: true, viewPosition: 0 });
+    },
+    []
   );
 
-  const headerLabel = `${year}년 ${month + 1}월`;
+  const handleDayPress = useCallback(
+    (cell: DayCell) => {
+      if (cell?.entry) navigation.navigate('Detail', { entryId: cell.entry.id });
+    },
+    [navigation]
+  );
 
-  return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Month Navigation */}
-        <View style={styles.monthNav}>
-          <TouchableOpacity onPress={goToPrevMonth} style={styles.navButton}>
-            <Text style={styles.navButtonText}>{'<'}</Text>
-          </TouchableOpacity>
-          <Text style={styles.monthLabel}>{headerLabel}</Text>
-          <TouchableOpacity onPress={goToNextMonth} style={styles.navButton}>
-            <Text style={styles.navButtonText}>{'>'}</Text>
-          </TouchableOpacity>
-        </View>
+  const onViewableItemsChanged = useRef(
+    ({ viewableItems }: { viewableItems: ViewToken[] }) => {
+      if (viewableItems.length === 0) return;
+      const top = viewableItems[0].item as Row;
+      setVisibleLabel({ year: top.labelYear, month: top.labelMonth });
+    }
+  ).current;
 
-        {/* Weekday Headers */}
-        <View style={styles.weekdayRow}>
-          {WEEKDAYS.map((day) => (
-            <View key={day} style={styles.weekdayCell}>
-              <Text style={styles.weekdayText}>{day}</Text>
-            </View>
-          ))}
-        </View>
+  const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 1 }).current;
 
-        {/* Calendar Grid */}
-        <View style={styles.calendarGrid}>
-          {days.map((day, idx) => {
-            if (day === null) {
-              return <View key={`empty-${idx}`} style={styles.dayCell} />;
-            }
+  const renderRow = useCallback(
+    ({ item }: { item: Row }) => (
+      <View style={styles.row}>
+        {item.cells.map((cell, i) => {
+          if (!cell) return <View key={`pad-${i}`} style={styles.cellPad} />;
+          const hasEntry = !!cell.entry;
+          const isFirstOfMonth = cell.day === 1;
+          const dateLabel = isFirstOfMonth ? `${cell.month + 1}/${cell.day}` : String(cell.day);
 
-            const dateStr = dateString(year, month, day);
-            const hasEntry = entriesByDate.has(dateStr);
-            const today = isToday(year, month, day);
-
+          // 기분 모드: 그림 대신 mood 색으로 셀 채움
+          if (moodMode) {
+            const moodColor = cell.entry?.mood ? MOOD_COLORS[cell.entry.mood] : null;
             return (
               <TouchableOpacity
-                key={dateStr}
+                key={cell.dateStr}
                 style={[
-                  styles.dayCell,
-                  today && styles.todayCell,
+                  styles.cell,
+                  moodColor ? { backgroundColor: moodColor } : null,
+                  cell.isToday && styles.cellToday,
                 ]}
-                onPress={() => handleDayPress(day)}
-                activeOpacity={hasEntry ? 0.6 : 1}
+                activeOpacity={hasEntry ? 0.7 : 1}
+                onPress={() => handleDayPress(cell)}
+                disabled={!hasEntry}
               >
                 <Text
                   style={[
-                    styles.dayText,
-                    today && styles.todayText,
-                    hasEntry && styles.dayTextWithEntry,
+                    styles.cellDay,
+                    isFirstOfMonth && styles.cellDayFirst,
+                    cell.isToday && styles.cellDayToday,
+                    moodColor && styles.cellDayOnImage,
                   ]}
                 >
-                  {day}
+                  {dateLabel}
                 </Text>
-                {hasEntry && <View style={styles.dot} />}
               </TouchableOpacity>
             );
-          })}
-        </View>
+          }
 
-        {/* Recent Entries List */}
-        <View style={styles.recentSection}>
-          <Text style={styles.recentTitle}>최근 그림일기</Text>
-          {sortedEntries.length === 0 ? (
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>
-                아직 작성한 일기가 없어요.{'\n'}오늘의 하루를 기록해보세요 ✍️
-              </Text>
-            </View>
-          ) : (
-            sortedEntries.map((entry) => (
-              <TouchableOpacity
-                key={entry.id}
-                style={styles.entryCard}
-                onPress={() =>
-                  navigation.navigate('Detail', { entryId: entry.id })
-                }
-                activeOpacity={0.7}
-              >
-                {entry.imageUrl ? (
-                  <Image
-                    source={{ uri: entry.imageUrl }}
-                    style={styles.entryThumbnail}
-                  />
-                ) : (
-                  <View style={styles.entryThumbnailPlaceholder}>
-                    <Text style={styles.placeholderEmoji}>📝</Text>
-                  </View>
-                )}
-                <View style={styles.entryInfo}>
-                  <Text style={styles.entryDate}>
-                    {formatDate(entry.date)}
-                  </Text>
-                  <Text style={styles.entryPreview} numberOfLines={2}>
-                    {entry.content}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            ))
-          )}
+          // 기본 모드: 그림 썸네일
+          const thumb =
+            cell.entry?.imageThumbPath || cell.entry?.imageLocalPath || cell.entry?.imageUrl;
+          return (
+            <TouchableOpacity
+              key={cell.dateStr}
+              style={[styles.cell, cell.isToday && styles.cellToday]}
+              activeOpacity={hasEntry ? 0.7 : 1}
+              onPress={() => handleDayPress(cell)}
+              disabled={!hasEntry}
+            >
+              {thumb ? (
+                <>
+                  <Image source={{ uri: thumb }} style={styles.cellImage} />
+                  <View style={styles.cellOverlay} />
+                  <Text style={[styles.cellDay, styles.cellDayOnImage]}>{dateLabel}</Text>
+                </>
+              ) : (
+                <Text
+                  style={[
+                    styles.cellDay,
+                    isFirstOfMonth && styles.cellDayFirst,
+                    cell.isToday && styles.cellDayToday,
+                  ]}
+                >
+                  {dateLabel}
+                </Text>
+              )}
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    ),
+    [handleDayPress, moodMode]
+  );
+
+  const getItemLayout = useCallback(
+    (_: any, index: number) => ({
+      length: ROW_HEIGHT,
+      offset: ROW_HEIGHT * index,
+      index,
+    }),
+    []
+  );
+
+  const headerLabel = visibleLabel ? `${visibleLabel.year}년 ${visibleLabel.month + 1}월` : '';
+
+  return (
+    <SafeAreaView style={styles.safe} edges={['top']}>
+      <View style={styles.topBar}>
+        <Text style={styles.topTitle}>달력</Text>
+        <View style={styles.topActions}>
+          <TouchableOpacity
+            style={[
+              styles.jumpButton,
+              moodMode && styles.moodToggleActive,
+            ]}
+            onPress={() => setMoodMode((v) => !v)}
+            activeOpacity={0.7}
+          >
+            <Text
+              style={[
+                styles.jumpButtonText,
+                moodMode && styles.moodToggleActiveText,
+              ]}
+            >
+              기분
+            </Text>
+          </TouchableOpacity>
+          {firstEntryRowIndex >= 0 ? (
+            <TouchableOpacity
+              style={styles.jumpButton}
+              onPress={() => jumpToRow(firstEntryRowIndex)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.jumpButtonText}>첫 일기</Text>
+            </TouchableOpacity>
+          ) : null}
+          <TouchableOpacity
+            style={styles.jumpButtonPrimary}
+            onPress={() => jumpToRow(todayRowIndex)}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.jumpButtonPrimaryText}>오늘</Text>
+          </TouchableOpacity>
         </View>
-      </ScrollView>
+      </View>
+
+      <View style={styles.floatingHeader}>
+        <Text style={styles.monthLabel}>{headerLabel}</Text>
+        <View style={styles.weekdayRow}>
+          {WEEKDAYS.map((d) => (
+            <Text key={d} style={styles.weekdayText}>
+              {d}
+            </Text>
+          ))}
+        </View>
+      </View>
+
+      <FlatList
+        ref={listRef}
+        data={rows}
+        keyExtractor={(item) => item.id}
+        renderItem={renderRow}
+        getItemLayout={getItemLayout}
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={viewabilityConfig}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+        onScrollToIndexFailed={(info) => {
+          setTimeout(() => {
+            listRef.current?.scrollToIndex({
+              index: info.index,
+              animated: true,
+              viewPosition: 0,
+            });
+          }, 200);
+        }}
+      />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  safe: {
     flex: 1,
-    backgroundColor: '#FFF8F0',
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 40,
+    backgroundColor: '#FBF6EE',
   },
 
-  /* Month Navigation */
-  monthNav: {
+  topBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 20,
+    paddingHorizontal: H_PADDING,
+    paddingTop: 8,
+    paddingBottom: 8,
+    backgroundColor: '#FBF6EE',
   },
-  navButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#F5EDE0',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  navButtonText: {
+  topTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#5C4033',
+    color: '#3A2E25',
+    letterSpacing: 0.3,
+  },
+  topActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  jumpButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: '#ECE2D3',
+  },
+  jumpButtonText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#9B8979',
+  },
+  moodToggleActive: {
+    backgroundColor: '#C97B4A',
+    borderColor: '#C97B4A',
+  },
+  moodToggleActiveText: {
+    color: '#FFFDF8',
+    fontWeight: '700',
+  },
+  jumpButtonPrimary: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: '#C97B4A',
+  },
+  jumpButtonPrimaryText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#C97B4A',
+    letterSpacing: 0.3,
+  },
+
+  floatingHeader: {
+    backgroundColor: '#FBF6EE',
+    paddingHorizontal: H_PADDING,
+    paddingTop: 12,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ECE2D3',
   },
   monthLabel: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
-    color: '#5C4033',
+    color: '#3A2E25',
+    marginBottom: 12,
+    letterSpacing: 0.3,
+  },
+  weekdayRow: {
+    flexDirection: 'row',
+  },
+  weekdayText: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#9B8979',
     letterSpacing: 0.5,
   },
 
-  /* Weekday Headers */
-  weekdayRow: {
-    flexDirection: 'row',
-    marginBottom: 4,
-  },
-  weekdayCell: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  weekdayText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#A0846B',
+  listContent: {
+    paddingTop: GAP,
+    paddingBottom: 40,
   },
 
-  /* Calendar Grid */
-  calendarGrid: {
+  row: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    backgroundColor: '#FFFDF7',
-    borderRadius: 16,
-    padding: 6,
-    borderWidth: 1,
-    borderColor: '#F0E3D0',
+    paddingHorizontal: H_PADDING,
+    marginBottom: GAP,
+    gap: GAP,
   },
-  dayCell: {
-    width: '14.28%',
-    aspectRatio: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 12,
+  cell: {
+    width: CELL_SIZE,
+    height: CELL_SIZE,
+    backgroundColor: '#FFFDF8',
+    overflow: 'hidden',
+    alignItems: 'flex-end',
+    justifyContent: 'flex-start',
   },
-  todayCell: {
-    backgroundColor: '#D4E4FA',
+  cellToday: {
+    borderWidth: 1.5,
+    borderColor: '#C97B4A',
   },
-  dayText: {
-    fontSize: 15,
+  cellPad: {
+    width: CELL_SIZE,
+    height: CELL_SIZE,
+  },
+  cellImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+  },
+  cellOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.18)',
+  },
+  cellDay: {
+    fontSize: 10,
+    color: '#9B8979',
     fontWeight: '500',
-    color: '#3D2B1F',
+    margin: 4,
   },
-  todayText: {
+  cellDayFirst: {
+    color: '#3A2E25',
     fontWeight: '700',
-    color: '#2B5EA7',
   },
-  dayTextWithEntry: {
-    fontWeight: '600',
-  },
-  dot: {
-    width: 5,
-    height: 5,
-    borderRadius: 3,
-    backgroundColor: '#4A90D9',
-    marginTop: 2,
-  },
-
-  /* Recent Entries Section */
-  recentSection: {
-    marginTop: 28,
-  },
-  recentTitle: {
-    fontSize: 18,
+  cellDayToday: {
+    color: '#C97B4A',
     fontWeight: '700',
-    color: '#5C4033',
-    marginBottom: 16,
-    letterSpacing: 0.3,
   },
-  emptyContainer: {
-    backgroundColor: '#FFFDF7',
-    borderRadius: 16,
-    padding: 40,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#F0E3D0',
-  },
-  emptyText: {
-    fontSize: 15,
-    color: '#A0846B',
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-
-  /* Entry Card */
-  entryCard: {
-    flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 12,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  entryThumbnail: {
-    width: 60,
-    height: 60,
-    borderRadius: 12,
-    backgroundColor: '#F5EDE0',
-  },
-  entryThumbnailPlaceholder: {
-    width: 60,
-    height: 60,
-    borderRadius: 12,
-    backgroundColor: '#F5EDE0',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  placeholderEmoji: {
-    fontSize: 24,
-  },
-  entryInfo: {
-    flex: 1,
-    marginLeft: 12,
-    justifyContent: 'center',
-  },
-  entryDate: {
-    fontSize: 13,
+  cellDayOnImage: {
+    color: '#FFFDF8',
     fontWeight: '600',
-    color: '#8B7355',
-    marginBottom: 4,
-  },
-  entryPreview: {
-    fontSize: 14,
-    color: '#3D2C1A',
-    lineHeight: 20,
+    textShadowColor: 'rgba(0,0,0,0.4)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
 });

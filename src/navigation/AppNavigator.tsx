@@ -1,7 +1,8 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Text, View, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import type { RootStackParamList } from '../types';
 import WriteScreen from '../screens/WriteScreen';
 import CalendarScreen from '../screens/CalendarScreen';
@@ -10,17 +11,20 @@ import DetailScreen from '../screens/DetailScreen';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator();
 
-function TabIcon({ label, focused }: { label: string; focused: boolean }) {
-  const icons: Record<string, string> = {
-    쓰기: '✏️',
-    목록: '📖',
-  };
+function TabItem({
+  iconName,
+  label,
+  focused,
+}: {
+  iconName: keyof typeof Feather.glyphMap;
+  label: string;
+  focused: boolean;
+}) {
+  const color = focused ? '#C97B4A' : '#9B8979';
   return (
-    <View style={styles.tabIconContainer}>
-      <Text style={[styles.tabIcon, focused && styles.tabIconFocused]}>
-        {icons[label] || '📝'}
-      </Text>
-      <Text style={[styles.tabLabel, focused && styles.tabLabelFocused]}>
+    <View style={styles.tabItem}>
+      <Feather name={iconName} size={20} color={color} />
+      <Text style={[styles.tabLabel, { color }, focused && styles.tabLabelFocused]}>
         {label}
       </Text>
     </View>
@@ -40,14 +44,18 @@ function MainTabs() {
         name="Write"
         component={WriteScreen}
         options={{
-          tabBarIcon: ({ focused }) => <TabIcon label="쓰기" focused={focused} />,
+          tabBarIcon: ({ focused }) => (
+            <TabItem iconName="edit-3" label="쓰기" focused={focused} />
+          ),
         }}
       />
       <Tab.Screen
         name="Calendar"
         component={CalendarScreen}
         options={{
-          tabBarIcon: ({ focused }) => <TabIcon label="목록" focused={focused} />,
+          tabBarIcon: ({ focused }) => (
+            <TabItem iconName="book-open" label="목록" focused={focused} />
+          ),
         }}
       />
     </Tab.Navigator>
@@ -69,37 +77,29 @@ export default function AppNavigator() {
 
 const styles = StyleSheet.create({
   tabBar: {
-    backgroundColor: '#FFFDF7',
+    backgroundColor: '#FFFDF8',
     borderTopWidth: 1,
-    borderTopColor: '#F0E8E0',
-    height: 70,
-    paddingBottom: 8,
-    paddingTop: 8,
+    borderTopColor: '#ECE2D3',
+    height: 96,
+    paddingBottom: 24,
+    paddingTop: 14,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.04,
     shadowRadius: 8,
     elevation: 4,
   },
-  tabIconContainer: {
+  tabItem: {
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 2,
-  },
-  tabIcon: {
-    fontSize: 22,
-    opacity: 0.5,
-  },
-  tabIconFocused: {
-    opacity: 1,
+    gap: 4,
   },
   tabLabel: {
-    fontSize: 10,
-    color: '#C0B8B0',
+    fontSize: 11,
     fontWeight: '500',
+    letterSpacing: 0.3,
   },
   tabLabelFocused: {
-    color: '#7EB8DA',
     fontWeight: '700',
   },
 });
