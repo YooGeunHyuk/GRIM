@@ -32,7 +32,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import type { DiaryEntry, Weather, Mood } from '../types';
 import { MOODS, MOOD_COLORS } from '../types';
 import { generateImage } from '../lib/imageGen';
-import { COLORS, SHADOW } from '../lib/theme';
+import { COLORS, FONT, SHADOW } from '../lib/theme';
 import {
   upsertEntry,
   getEntryByDate,
@@ -164,6 +164,7 @@ const inkStyles = StyleSheet.create({
     alignItems: 'center',
   },
   labelText: {
+    fontFamily: FONT.ui,
     fontSize: 12,
     color: COLORS.text,
     fontWeight: '500',
@@ -646,6 +647,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   dateLabel: {
+    fontFamily: FONT.title,
     fontSize: 20,
     fontWeight: '700',
     color: COLORS.text,
@@ -675,6 +677,7 @@ const styles = StyleSheet.create({
     borderColor: COLORS.accent,
   },
   metaChipText: {
+    fontFamily: FONT.ui,
     fontSize: 12,
     fontWeight: '500',
     color: COLORS.muted,
@@ -713,6 +716,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   metaDropdownText: {
+    fontFamily: FONT.ui,
     fontSize: 13,
     fontWeight: '500',
     color: COLORS.muted,
@@ -729,6 +733,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   metaDropdownClearText: {
+    fontFamily: FONT.ui,
     fontSize: 12,
     fontWeight: '500',
     color: COLORS.muted,
@@ -747,6 +752,7 @@ const styles = StyleSheet.create({
     minHeight: 40,
   },
   kbBarDone: {
+    fontFamily: FONT.uiBold,
     fontSize: 14,
     fontWeight: '700',
     color: COLORS.accent,
@@ -774,6 +780,7 @@ const styles = StyleSheet.create({
   },
   imageLoadingText: {
     marginTop: 12,
+    fontFamily: FONT.ui,
     fontSize: 13,
     color: COLORS.muted,
   },
@@ -790,6 +797,7 @@ const styles = StyleSheet.create({
     top: 0,
   },
   bodyText: {
+    fontFamily: FONT.body,
     fontSize: BODY_FONT,
     lineHeight: BODY_LINE_HEIGHT,
     color: COLORS.text,
@@ -800,6 +808,7 @@ const styles = StyleSheet.create({
     opacity: 0,
   },
   placeholder: {
+    fontFamily: FONT.body,
     fontSize: BODY_FONT,
     lineHeight: BODY_LINE_HEIGHT,
     color: '#C4A98E',
@@ -825,6 +834,7 @@ const styles = StyleSheet.create({
     borderTopColor: COLORS.line,
   },
   accessoryDone: {
+    fontFamily: FONT.uiBold,
     fontSize: 14,
     fontWeight: '700',
     color: COLORS.accent,
@@ -858,6 +868,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
   },
   styleChipLabel: {
+    fontFamily: FONT.ui,
     fontSize: 12,
     color: COLORS.muted,
     fontWeight: '500',
@@ -877,6 +888,7 @@ const styles = StyleSheet.create({
     borderColor: COLORS.line,
   },
   generateButtonText: {
+    fontFamily: FONT.ui,
     fontSize: 12,
     fontWeight: '600',
     color: COLORS.accent,
@@ -886,6 +898,7 @@ const styles = StyleSheet.create({
     color: '#C8BBAA',
   },
   savedLabel: {
+    fontFamily: FONT.ui,
     fontSize: 11,
     color: COLORS.muted,
     textAlign: 'right',
@@ -893,6 +906,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   savedLabelMuted: {
+    fontFamily: FONT.ui,
     fontSize: 11,
     color: '#C8BBAA',
     textAlign: 'right',

@@ -7,7 +7,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, AppState } from 'react-native';
 import * as LocalAuthentication from 'expo-local-authentication';
-import { COLORS } from '../lib/theme';
+import { COLORS, FONT } from '../lib/theme';
 
 type Props = {
   children: React.ReactNode;
@@ -83,6 +83,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
   },
   brand: {
+    fontFamily: FONT.display,
     fontSize: 40,
     fontWeight: '700',
     color: COLORS.text,
@@ -90,6 +91,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   subtitle: {
+    fontFamily: FONT.uiBold,
     fontSize: 14,
     color: COLORS.muted,
     marginBottom: 48,
@@ -103,6 +105,7 @@ const styles = StyleSheet.create({
     borderColor: COLORS.accent,
   },
   buttonText: {
+    fontFamily: FONT.uiBold,
     fontSize: 14,
     fontWeight: '700',
     color: COLORS.accent,

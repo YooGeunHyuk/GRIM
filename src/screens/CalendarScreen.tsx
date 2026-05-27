@@ -24,7 +24,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { loadEntries } from '../lib/storage';
 import type { DiaryEntry } from '../types';
 import { MOOD_COLORS } from '../types';
-import { COLORS } from '../lib/theme';
+import { COLORS, FONT } from '../lib/theme';
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 const GAP = 3;
@@ -389,6 +389,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   topTitle: {
+    fontFamily: FONT.title,
     fontSize: 20,
     fontWeight: '600',
     color: COLORS.text,
@@ -406,6 +407,7 @@ const styles = StyleSheet.create({
     borderColor: COLORS.line,
   },
   jumpButtonText: {
+    fontFamily: FONT.ui,
     fontSize: 12,
     fontWeight: '500',
     color: COLORS.muted,
@@ -426,6 +428,7 @@ const styles = StyleSheet.create({
     borderColor: COLORS.accent,
   },
   jumpButtonPrimaryText: {
+    fontFamily: FONT.ui,
     fontSize: 12,
     fontWeight: '600',
     color: COLORS.accent,
@@ -441,6 +444,7 @@ const styles = StyleSheet.create({
     borderBottomColor: COLORS.line,
   },
   monthLabel: {
+    fontFamily: FONT.uiHeavy,
     fontSize: 18,
     fontWeight: '700',
     color: COLORS.text,
@@ -453,6 +457,7 @@ const styles = StyleSheet.create({
   weekdayText: {
     flex: 1,
     textAlign: 'center',
+    fontFamily: FONT.ui,
     fontSize: 11,
     fontWeight: '600',
     color: COLORS.muted,
@@ -504,6 +509,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.18)',
   },
   cellDay: {
+    fontFamily: FONT.ui,
     fontSize: 10,
     color: COLORS.muted,
     fontWeight: '500',

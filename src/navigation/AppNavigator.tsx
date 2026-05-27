@@ -7,7 +7,7 @@ import type { RootStackParamList } from '../types';
 import WriteScreen from '../screens/WriteScreen';
 import CalendarScreen from '../screens/CalendarScreen';
 import DetailScreen from '../screens/DetailScreen';
-import { COLORS } from '../lib/theme';
+import { COLORS, FONT } from '../lib/theme';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator();
@@ -96,6 +96,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   tabLabel: {
+    fontFamily: FONT.ui,
     fontSize: 11,
     fontWeight: '500',
     letterSpacing: 0.3,

@@ -33,7 +33,7 @@ import { loadEntries, upsertEntry, deleteEntry, formatDate } from '../lib/storag
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import type { RootStackParamList, DiaryEntry, Weather, Mood } from '../types';
 import { MOOD_COLORS, MOODS } from '../types';
-import { COLORS, SHADOW } from '../lib/theme';
+import { COLORS, FONT, SHADOW } from '../lib/theme';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -629,6 +629,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   dateLabel: {
+    fontFamily: FONT.title,
     fontSize: 20,
     fontWeight: '700',
     color: COLORS.text,
@@ -665,6 +666,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   metaChipText: {
+    fontFamily: FONT.ui,
     fontSize: 12,
     fontWeight: '500',
     color: COLORS.muted,
@@ -703,6 +705,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   metaDropdownText: {
+    fontFamily: FONT.ui,
     fontSize: 13,
     fontWeight: '500',
     color: COLORS.muted,
@@ -719,6 +722,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   metaDropdownClearText: {
+    fontFamily: FONT.ui,
     fontSize: 12,
     fontWeight: '500',
     color: COLORS.muted,
@@ -745,6 +749,7 @@ const styles = StyleSheet.create({
     top: 0,
   },
   content: {
+    fontFamily: FONT.body,
     fontSize: BODY_FONT,
     lineHeight: BODY_LINE_HEIGHT,
     color: COLORS.text,
@@ -771,11 +776,13 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   savedLabel: {
+    fontFamily: FONT.ui,
     fontSize: 11,
     color: COLORS.muted,
     letterSpacing: 0.3,
   },
   savedLabelMuted: {
+    fontFamily: FONT.ui,
     fontSize: 11,
     color: '#C8BBAA',
     fontStyle: 'italic',
@@ -789,6 +796,7 @@ const styles = StyleSheet.create({
     borderColor: COLORS.line,
   },
   deleteChipText: {
+    fontFamily: FONT.ui,
     fontSize: 12,
     fontWeight: '500',
     color: COLORS.muted,
@@ -806,6 +814,7 @@ const styles = StyleSheet.create({
     minHeight: 40,
   },
   kbBarDone: {
+    fontFamily: FONT.uiBold,
     fontSize: 14,
     fontWeight: '700',
     color: COLORS.accent,
@@ -813,6 +822,7 @@ const styles = StyleSheet.create({
   },
 
   errorText: {
+    fontFamily: FONT.ui,
     fontSize: 15,
     color: COLORS.muted,
     marginBottom: 12,
@@ -826,6 +836,7 @@ const styles = StyleSheet.create({
     borderColor: COLORS.accent,
   },
   backButtonText: {
+    fontFamily: FONT.ui,
     fontSize: 13,
     fontWeight: '600',
     color: COLORS.accent,
