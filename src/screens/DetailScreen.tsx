@@ -44,7 +44,7 @@ type DetailRouteProp = RouteProp<RootStackParamList, 'Detail'>;
 const WEATHERS: Weather[] = ['맑음', '구름조금', '흐림', '비', '소나기', '눈', '안개'];
 const BODY_FONT = 15;
 const BODY_LINE_HEIGHT = 28;
-const LINE_COLOR = '#ECE2D3';
+const LINE_COLOR = COLORS.line;
 const H_PADDING = 20;
 const SWIPE_THRESHOLD = 80;
 const SWIPE_VX = 0.3;
@@ -592,11 +592,11 @@ function EntryView({
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#FBF6EE',
+    backgroundColor: COLORS.background,
   },
   safe: {
     flex: 1,
-    backgroundColor: '#FBF6EE',
+    backgroundColor: COLORS.background,
   },
   gestureLayer: {
     flex: 1,
@@ -631,7 +631,7 @@ const styles = StyleSheet.create({
   dateLabel: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#3A2E25',
+    color: COLORS.text,
     letterSpacing: 0.3,
   },
 
@@ -651,23 +651,23 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: '#ECE2D3',
+    borderColor: COLORS.line,
   },
   metaChipActive: {
-    borderColor: '#C97B4A',
+    borderColor: COLORS.accent,
   },
   editChipActive: {
-    backgroundColor: '#C97B4A',
-    borderColor: '#C97B4A',
+    backgroundColor: COLORS.accent,
+    borderColor: COLORS.accent,
   },
   editChipActiveText: {
-    color: '#FFFDF8',
+    color: COLORS.surface,
     fontWeight: '700',
   },
   metaChipText: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#9B8979',
+    color: COLORS.muted,
     letterSpacing: 0.3,
   },
   moodDot: {
@@ -679,9 +679,9 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 32,
     right: 0,
-    backgroundColor: '#FFFDF8',
+    backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor: '#ECE2D3',
+    borderColor: COLORS.line,
     borderRadius: 14,
     paddingVertical: 6,
     minWidth: 120,
@@ -700,28 +700,28 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   metaDropdownItemActive: {
-    backgroundColor: '#FBF6EE',
+    backgroundColor: COLORS.background,
   },
   metaDropdownText: {
     fontSize: 13,
     fontWeight: '500',
-    color: '#9B8979',
+    color: COLORS.muted,
   },
   metaDropdownTextActive: {
-    color: '#C97B4A',
+    color: COLORS.accent,
     fontWeight: '700',
   },
   metaDropdownClear: {
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderTopWidth: 1,
-    borderTopColor: '#ECE2D3',
+    borderTopColor: COLORS.line,
     marginTop: 4,
   },
   metaDropdownClearText: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#9B8979',
+    color: COLORS.muted,
     fontStyle: 'italic',
   },
 
@@ -747,7 +747,7 @@ const styles = StyleSheet.create({
   content: {
     fontSize: BODY_FONT,
     lineHeight: BODY_LINE_HEIGHT,
-    color: '#3A2E25',
+    color: COLORS.text,
     padding: 0,
     margin: 0,
   },
@@ -772,7 +772,7 @@ const styles = StyleSheet.create({
   },
   savedLabel: {
     fontSize: 11,
-    color: '#9B8979',
+    color: COLORS.muted,
     letterSpacing: 0.3,
   },
   savedLabelMuted: {
@@ -786,12 +786,12 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: '#ECE2D3',
+    borderColor: COLORS.line,
   },
   deleteChipText: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#9B8979',
+    color: COLORS.muted,
     letterSpacing: 0.3,
   },
 
@@ -808,13 +808,13 @@ const styles = StyleSheet.create({
   kbBarDone: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#C97B4A',
+    color: COLORS.accent,
     letterSpacing: 0.3,
   },
 
   errorText: {
     fontSize: 15,
-    color: '#9B8979',
+    color: COLORS.muted,
     marginBottom: 12,
   },
   backButton: {
@@ -823,11 +823,11 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: '#C97B4A',
+    borderColor: COLORS.accent,
   },
   backButtonText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#C97B4A',
+    color: COLORS.accent,
   },
 });

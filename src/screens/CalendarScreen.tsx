@@ -24,6 +24,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { loadEntries } from '../lib/storage';
 import type { DiaryEntry } from '../types';
 import { MOOD_COLORS } from '../types';
+import { COLORS } from '../lib/theme';
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 const GAP = 3;
@@ -375,7 +376,7 @@ export default function CalendarScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#FBF6EE',
+    backgroundColor: COLORS.background,
   },
 
   topBar: {
@@ -385,12 +386,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: H_PADDING,
     paddingTop: 8,
     paddingBottom: 8,
-    backgroundColor: '#FBF6EE',
+    backgroundColor: COLORS.background,
   },
   topTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#3A2E25',
+    color: COLORS.text,
     letterSpacing: 0.3,
   },
   topActions: {
@@ -402,19 +403,19 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: '#ECE2D3',
+    borderColor: COLORS.line,
   },
   jumpButtonText: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#9B8979',
+    color: COLORS.muted,
   },
   moodToggleActive: {
-    backgroundColor: '#C97B4A',
-    borderColor: '#C97B4A',
+    backgroundColor: COLORS.accent,
+    borderColor: COLORS.accent,
   },
   moodToggleActiveText: {
-    color: '#FFFDF8',
+    color: COLORS.surface,
     fontWeight: '700',
   },
   jumpButtonPrimary: {
@@ -422,27 +423,27 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: '#C97B4A',
+    borderColor: COLORS.accent,
   },
   jumpButtonPrimaryText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#C97B4A',
+    color: COLORS.accent,
     letterSpacing: 0.3,
   },
 
   floatingHeader: {
-    backgroundColor: '#FBF6EE',
+    backgroundColor: COLORS.background,
     paddingHorizontal: H_PADDING,
     paddingTop: 12,
     paddingBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#ECE2D3',
+    borderBottomColor: COLORS.line,
   },
   monthLabel: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#3A2E25',
+    color: COLORS.text,
     marginBottom: 12,
     letterSpacing: 0.3,
   },
@@ -454,7 +455,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 11,
     fontWeight: '600',
-    color: '#9B8979',
+    color: COLORS.muted,
     letterSpacing: 0.5,
   },
 
@@ -472,14 +473,14 @@ const styles = StyleSheet.create({
   cell: {
     width: CELL_SIZE,
     height: CELL_SIZE,
-    backgroundColor: '#FFFDF8',
+    backgroundColor: COLORS.surface,
     overflow: 'hidden',
     alignItems: 'flex-end',
     justifyContent: 'flex-start',
   },
   cellToday: {
     borderWidth: 1.5,
-    borderColor: '#C97B4A',
+    borderColor: COLORS.accent,
   },
   cellPad: {
     width: CELL_SIZE,
@@ -504,20 +505,20 @@ const styles = StyleSheet.create({
   },
   cellDay: {
     fontSize: 10,
-    color: '#9B8979',
+    color: COLORS.muted,
     fontWeight: '500',
     margin: 4,
   },
   cellDayFirst: {
-    color: '#3A2E25',
+    color: COLORS.text,
     fontWeight: '700',
   },
   cellDayToday: {
-    color: '#C97B4A',
+    color: COLORS.accent,
     fontWeight: '700',
   },
   cellDayOnImage: {
-    color: '#FFFDF8',
+    color: COLORS.surface,
     fontWeight: '600',
     textShadowColor: 'rgba(0,0,0,0.4)',
     textShadowOffset: { width: 0, height: 1 },

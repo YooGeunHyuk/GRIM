@@ -7,6 +7,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, AppState } from 'react-native';
 import * as LocalAuthentication from 'expo-local-authentication';
+import { COLORS } from '../lib/theme';
 
 type Props = {
   children: React.ReactNode;
@@ -76,7 +77,7 @@ export default function LockGate({ children }: Props) {
 const styles = StyleSheet.create({
   lock: {
     flex: 1,
-    backgroundColor: '#FBF6EE',
+    backgroundColor: COLORS.background,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 40,
@@ -84,13 +85,13 @@ const styles = StyleSheet.create({
   brand: {
     fontSize: 40,
     fontWeight: '700',
-    color: '#3A2E25',
+    color: COLORS.text,
     letterSpacing: 2,
     marginBottom: 12,
   },
   subtitle: {
     fontSize: 14,
-    color: '#9B8979',
+    color: COLORS.muted,
     marginBottom: 48,
     letterSpacing: 0.3,
   },
@@ -99,12 +100,12 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 999,
     borderWidth: 1.5,
-    borderColor: '#C97B4A',
+    borderColor: COLORS.accent,
   },
   buttonText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#C97B4A',
+    color: COLORS.accent,
     letterSpacing: 0.5,
   },
 });

@@ -7,6 +7,7 @@ import type { RootStackParamList } from '../types';
 import WriteScreen from '../screens/WriteScreen';
 import CalendarScreen from '../screens/CalendarScreen';
 import DetailScreen from '../screens/DetailScreen';
+import { COLORS } from '../lib/theme';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator();
@@ -20,7 +21,7 @@ function TabItem({
   label: string;
   focused: boolean;
 }) {
-  const color = focused ? '#C97B4A' : '#9B8979';
+  const color = focused ? COLORS.accent : COLORS.muted;
   return (
     <View style={styles.tabItem}>
       <Feather name={iconName} size={20} color={color} />
@@ -77,9 +78,9 @@ export default function AppNavigator() {
 
 const styles = StyleSheet.create({
   tabBar: {
-    backgroundColor: '#FFFDF8',
+    backgroundColor: COLORS.surface,
     borderTopWidth: 1,
-    borderTopColor: '#ECE2D3',
+    borderTopColor: COLORS.line,
     height: 96,
     paddingBottom: 24,
     paddingTop: 14,

@@ -61,7 +61,7 @@ const STYLE_LABELS: Record<string, string> = {
 
 const BODY_FONT = 15;
 const BODY_LINE_HEIGHT = 28;
-const LINE_COLOR = '#ECE2D3';
+const LINE_COLOR = COLORS.line;
 const H_PADDING = 20;
 
 /** 그림 인화 중 — 도화지에 물감이 번지듯이 워터컬러 wash 효과.
@@ -100,7 +100,7 @@ function InkCanvas() {
     { top: '8%', left: '5%', size: 220, color: '#E8CBA5' },
     { top: '32%', left: '50%', size: 260, color: '#F0C26B' },
     { top: '55%', left: '0%', size: 200, color: '#F0A8B0' },
-    { top: '10%', left: '55%', size: 180, color: '#C97B4A' },
+    { top: '10%', left: '55%', size: 180, color: COLORS.accent },
     { top: '48%', left: '30%', size: 230, color: '#B8A4C9' },
     { top: '62%', left: '55%', size: 200, color: '#A9C9C0' },
   ];
@@ -150,7 +150,7 @@ const inkStyles = StyleSheet.create({
   canvas: {
     width: '100%',
     aspectRatio: 4 / 3,
-    backgroundColor: '#FFFDF8',
+    backgroundColor: COLORS.surface,
     overflow: 'hidden',
   },
   blobWrap: {
@@ -165,7 +165,7 @@ const inkStyles = StyleSheet.create({
   },
   labelText: {
     fontSize: 12,
-    color: '#3A2E25',
+    color: COLORS.text,
     fontWeight: '500',
     letterSpacing: 0.5,
     opacity: 0.7,
@@ -623,11 +623,11 @@ export default function WriteScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#FBF6EE',
+    backgroundColor: COLORS.background,
   },
   safe: {
     flex: 1,
-    backgroundColor: '#FBF6EE',
+    backgroundColor: COLORS.background,
   },
   scroll: {
     flex: 1,
@@ -648,7 +648,7 @@ const styles = StyleSheet.create({
   dateLabel: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#3A2E25',
+    color: COLORS.text,
     letterSpacing: 0.3,
   },
 
@@ -669,15 +669,15 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: '#ECE2D3',
+    borderColor: COLORS.line,
   },
   metaChipActive: {
-    borderColor: '#C97B4A',
+    borderColor: COLORS.accent,
   },
   metaChipText: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#9B8979',
+    color: COLORS.muted,
     letterSpacing: 0.3,
   },
   moodDot: {
@@ -689,9 +689,9 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 32,
     right: 0,
-    backgroundColor: '#FFFDF8',
+    backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor: '#ECE2D3',
+    borderColor: COLORS.line,
     borderRadius: 14,
     paddingVertical: 6,
     minWidth: 120,
@@ -710,28 +710,28 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   metaDropdownItemActive: {
-    backgroundColor: '#FBF6EE',
+    backgroundColor: COLORS.background,
   },
   metaDropdownText: {
     fontSize: 13,
     fontWeight: '500',
-    color: '#9B8979',
+    color: COLORS.muted,
   },
   metaDropdownTextActive: {
-    color: '#C97B4A',
+    color: COLORS.accent,
     fontWeight: '700',
   },
   metaDropdownClear: {
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderTopWidth: 1,
-    borderTopColor: '#ECE2D3',
+    borderTopColor: COLORS.line,
     marginTop: 4,
   },
   metaDropdownClearText: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#9B8979',
+    color: COLORS.muted,
     fontStyle: 'italic',
   },
 
@@ -749,7 +749,7 @@ const styles = StyleSheet.create({
   kbBarDone: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#C97B4A',
+    color: COLORS.accent,
     letterSpacing: 0.3,
   },
 
@@ -770,12 +770,12 @@ const styles = StyleSheet.create({
     aspectRatio: 4 / 3,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFDF8',
+    backgroundColor: COLORS.surface,
   },
   imageLoadingText: {
     marginTop: 12,
     fontSize: 13,
-    color: '#9B8979',
+    color: COLORS.muted,
   },
 
   /* 본문 */
@@ -792,7 +792,7 @@ const styles = StyleSheet.create({
   bodyText: {
     fontSize: BODY_FONT,
     lineHeight: BODY_LINE_HEIGHT,
-    color: '#3A2E25',
+    color: COLORS.text,
     padding: 0,
     margin: 0,
   },
@@ -820,14 +820,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 10,
-    backgroundColor: '#FFFDF8',
+    backgroundColor: COLORS.surface,
     borderTopWidth: 1,
-    borderTopColor: '#ECE2D3',
+    borderTopColor: COLORS.line,
   },
   accessoryDone: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#C97B4A',
+    color: COLORS.accent,
     letterSpacing: 0.3,
   },
 
@@ -850,20 +850,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: '#ECE2D3',
+    borderColor: COLORS.line,
     backgroundColor: 'transparent',
   },
   styleChipActive: {
-    borderColor: '#C97B4A',
-    backgroundColor: '#FFFDF8',
+    borderColor: COLORS.accent,
+    backgroundColor: COLORS.surface,
   },
   styleChipLabel: {
     fontSize: 12,
-    color: '#9B8979',
+    color: COLORS.muted,
     fontWeight: '500',
   },
   styleChipLabelActive: {
-    color: '#C97B4A',
+    color: COLORS.accent,
     fontWeight: '700',
   },
   generateButton: {
@@ -871,15 +871,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: '#C97B4A',
+    borderColor: COLORS.accent,
   },
   generateButtonDisabled: {
-    borderColor: '#ECE2D3',
+    borderColor: COLORS.line,
   },
   generateButtonText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#C97B4A',
+    color: COLORS.accent,
     letterSpacing: 0.3,
   },
   generateButtonTextDisabled: {
@@ -887,7 +887,7 @@ const styles = StyleSheet.create({
   },
   savedLabel: {
     fontSize: 11,
-    color: '#9B8979',
+    color: COLORS.muted,
     textAlign: 'right',
     marginTop: 4,
     letterSpacing: 0.3,
