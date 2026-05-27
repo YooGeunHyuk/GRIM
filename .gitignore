@@ -43,3 +43,9 @@ yarn-error.*
 # API keys (local only)
 src/lib/config.ts
 proxy/.env
+proxy/.env.local
+proxy/.vercel
+proxy/node_modules
+
+# A/B 테스트 결과물 (생성된 아티팩트, repo에 안 박음)
+proxy/ab-results-*/
