@@ -1,0 +1,17 @@
+{
+  "name": "grim-proxy",
+  "version": "1.0.0",
+  "private": true,
+  "description": "GRIM 이미지 생성 프록시 (Vercel 서버리스). 키를 숨긴 채 Flux 2 Pro 호출.",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel deploy --prod"
+  },
+  "devDependencies": {
+    "@vercel/node": "^5.0.0",
+    "typescript": "^5.6.0"
+  },
+  "dependencies": {
+    "@fal-ai/client": "^1.10.1"
+  }
+}
