@@ -33,6 +33,7 @@ import { loadEntries, upsertEntry, deleteEntry, formatDate } from '../lib/storag
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import type { RootStackParamList, DiaryEntry, Weather, Mood } from '../types';
 import { MOOD_COLORS, MOODS } from '../types';
+import { COLORS, SHADOW } from '../lib/theme';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -727,8 +728,10 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     aspectRatio: 4 / 3,
-    backgroundColor: '#FFFDF8',
+    backgroundColor: COLORS.surface,
     marginBottom: 20,
+    // 도화지 = 각진 모서리(border-radius 0 유지), 은은한 그림자 (DESIGN.md §그림 컨테이너)
+    ...SHADOW.paper,
   },
 
   bodyArea: {

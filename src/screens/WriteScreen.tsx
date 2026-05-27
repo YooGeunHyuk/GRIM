@@ -32,6 +32,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import type { DiaryEntry, Weather, Mood } from '../types';
 import { MOODS, MOOD_COLORS } from '../types';
 import { generateImage } from '../lib/imageGen';
+import { COLORS, SHADOW } from '../lib/theme';
 import {
   upsertEntry,
   getEntryByDate,
@@ -760,7 +761,9 @@ const styles = StyleSheet.create({
   imageCanvas: {
     width: '100%',
     aspectRatio: 4 / 3,
-    backgroundColor: '#FFFDF8',
+    backgroundColor: COLORS.surface,
+    // 도화지 = 각진 모서리(border-radius 0 유지), 은은한 그림자 (DESIGN.md §그림 컨테이너)
+    ...SHADOW.paper,
   },
   imageLoading: {
     width: '100%',
