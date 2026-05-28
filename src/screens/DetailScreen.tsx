@@ -5,7 +5,7 @@
 // - release threshold 넘으면 인접으로 animate + currentId 교체 + reset 0
 // - current만 편집 가능 (EntryView editable). 인접은 read-only.
 
-import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
+import React, { useEffect, useLayoutEffect, useState, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -41,6 +41,7 @@ import {
 } from '../lib/storage';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import type { RootStackParamList, DiaryEntry, Weather, Mood } from '../types';
+import { WEATHERS, WEATHER_COLORS } from '../types';
 import { MOOD_COLORS, MOODS } from '../types';
 import { COLORS, FONT, SHADOW } from '../lib/theme';
 
@@ -50,7 +51,6 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 
 type DetailRouteProp = RouteProp<RootStackParamList, 'Detail'>;
 
-const WEATHERS: Weather[] = ['맑음', '구름조금', '흐림', '비', '소나기', '눈', '안개'];
 const BODY_FONT = 15;
 const BODY_LINE_HEIGHT = 28;
 const LINE_COLOR = COLORS.line;
@@ -128,19 +128,21 @@ export default function DetailScreen() {
         duration: ANIM_OUT,
         useNativeDriver: true,
       }).start(() => {
-        // setCurrentId 먼저 → React가 새 entries 렌더 commit한 다음 프레임에 pan 리셋.
-        // 같은 frame에 둘 다 하면 옛 entries가 새 baseline에 잠깐 보여 깜빡임 발생.
+        // currentId 변경만 트리거 — pan 리셋은 아래 useLayoutEffect 가 commit 직후 처리.
+        // useLayoutEffect 는 react render commit 이후 paint 전에 동기 실행되므로,
+        // 새 entries 가 paint 되는 그 첫 frame 에 pan=0 도 함께 적용 → 깜빡임 없음.
         setCurrentId(newId);
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            pan.setValue(0);
-            animating.current = false;
-          });
-        });
       });
     },
     [pan]
   );
+
+  // currentId 가 바뀌면 pan 을 0 으로 동기 리셋. swipe 애니메이션 후 entries 가 한 칸씩
+  // 밀려 들어가는 사이 잘못된 slot 이 잠깐 보이는 깜빡임을 잡는다.
+  useLayoutEffect(() => {
+    pan.setValue(0);
+    animating.current = false;
+  }, [currentId, pan]);
 
   const springBack = useCallback(() => {
     Animated.timing(pan, {
@@ -413,7 +415,9 @@ function EntryView({
       ref={scrollRef}
       contentContainerStyle={styles.container}
       keyboardShouldPersistTaps="handled"
-      keyboardDismissMode="on-drag"
+      // 스크롤로 키보드 안 사라짐 — 긴 일기 편집 중 키보드 깜빡임 방지.
+      // 빈 영역 탭은 keyboardShouldPersistTaps="handled" 가 dismiss 처리.
+      keyboardDismissMode="none"
     >
       <View style={styles.header}>
         <Text style={styles.dateLabel}>{formatDate(entry.date)}</Text>
@@ -451,8 +455,17 @@ function EntryView({
               }}
               activeOpacity={0.6}
               disabled={!editable || !editing}
-              style={[styles.metaChip, weatherOpen && styles.metaChipActive]}
+              style={[
+                styles.metaChip,
+                weatherOpen && styles.metaChipActive,
+                weather ? { borderColor: WEATHER_COLORS[weather] } : null,
+              ]}
             >
+              {weather ? (
+                <View
+                  style={[styles.moodDot, { backgroundColor: WEATHER_COLORS[weather] }]}
+                />
+              ) : null}
               <Text style={styles.metaChipText}>{weather ?? '날씨'}</Text>
             </TouchableOpacity>
             {weatherOpen && (
@@ -471,6 +484,7 @@ function EntryView({
                       weather === w && styles.metaDropdownItemActive,
                     ]}
                   >
+                    <View style={[styles.moodDot, { backgroundColor: WEATHER_COLORS[w] }]} />
                     <Text
                       style={[
                         styles.metaDropdownText,

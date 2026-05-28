@@ -31,7 +31,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { DiaryEntry, Weather, Mood } from '../types';
-import { MOODS, MOOD_COLORS } from '../types';
+import { MOODS, MOOD_COLORS, WEATHERS, WEATHER_COLORS } from '../types';
 import { generateImage } from '../lib/imageGen';
 import { COLORS, FONT, SHADOW } from '../lib/theme';
 import {
@@ -46,7 +46,6 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const WEATHERS: Weather[] = ['맑음', '구름조금', '흐림', '비', '소나기', '눈', '안개'];
 const STYLE_LIST: Array<'watercolor' | 'cartoon' | 'pendrawing' | 'crayon'> = [
   'watercolor',
   'cartoon',
@@ -349,7 +348,8 @@ export default function WriteScreen() {
         style={styles.scroll}
         contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled"
-        keyboardDismissMode="on-drag"
+        // 스크롤로 키보드 안 사라짐 — 편집 중 키보드 깜빡임 방지.
+        keyboardDismissMode="none"
       >
         {/* Header: 날짜 + 날씨 + 기분 (각각 인라인 드롭다운) */}
         <View style={styles.header}>
@@ -363,8 +363,17 @@ export default function WriteScreen() {
                   setWeatherOpen((v) => !v);
                 }}
                 activeOpacity={0.6}
-                style={[styles.metaChip, weatherOpen && styles.metaChipActive]}
+                style={[
+                  styles.metaChip,
+                  weatherOpen && styles.metaChipActive,
+                  weather ? { borderColor: WEATHER_COLORS[weather] } : null,
+                ]}
               >
+                {weather ? (
+                  <View
+                    style={[styles.moodDot, { backgroundColor: WEATHER_COLORS[weather] }]}
+                  />
+                ) : null}
                 <Text style={styles.metaChipText}>{weather ?? '날씨'}</Text>
               </TouchableOpacity>
               {weatherOpen && (
@@ -383,6 +392,7 @@ export default function WriteScreen() {
                         weather === w && styles.metaDropdownItemActive,
                       ]}
                     >
+                      <View style={[styles.moodDot, { backgroundColor: WEATHER_COLORS[w] }]} />
                       <Text
                         style={[
                           styles.metaDropdownText,

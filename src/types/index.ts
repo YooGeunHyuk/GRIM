@@ -7,6 +7,27 @@ export type Weather =
   | '눈'
   | '안개';
 
+export const WEATHERS: Weather[] = [
+  '맑음',
+  '구름조금',
+  '흐림',
+  '비',
+  '소나기',
+  '눈',
+  '안개',
+];
+
+// 날씨 chip 색 — 무드와 충돌 안 나게 톤 분리. 자연색에서 차용.
+export const WEATHER_COLORS: Record<Weather, string> = {
+  맑음: '#F4C16D', // 햇볕 노랑
+  구름조금: '#B8CCD8', // 옅은 청회색
+  흐림: '#A1A6AE', // 회색
+  비: '#5478A8', // 진한 파랑
+  소나기: '#4FA4B8', // 청록 (튀는 빗방울)
+  눈: '#D6E2EE', // 차가운 화이트블루
+  안개: '#B8B5AE', // 미스티 그레이
+};
+
 export type Mood =
   | '기쁨'
   | '평온'
