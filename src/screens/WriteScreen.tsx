@@ -588,7 +588,7 @@ export default function WriteScreen() {
                 ]}
               >
                 {!displayUri
-                  ? '✎ 그림 그리기'
+                  ? '저장'
                   : regenerated
                   ? '↻ 다시 그리기 (소진)'
                   : '↻ 다시 그리기 (1회)'}

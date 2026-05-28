@@ -29,7 +29,15 @@ import {
   PlatformColor,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { loadEntries, upsertEntry, deleteEntry, formatDate } from '../lib/storage';
+import {
+  loadEntries,
+  upsertEntry,
+  deleteEntry,
+  formatDate,
+  loadDraft,
+  saveDraft,
+  clearDraft,
+} from '../lib/storage';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import type { RootStackParamList, DiaryEntry, Weather, Mood } from '../types';
 import { MOOD_COLORS, MOODS } from '../types';
@@ -307,15 +315,6 @@ function EntryView({
     onDropdownChange?.(weatherOpen || moodOpen);
   }, [weatherOpen, moodOpen, onDropdownChange]);
 
-  // 키보드 완료 handler 등록
-  useEffect(() => {
-    if (!editable) return;
-    registerDoneHandler?.(() => {
-      Keyboard.dismiss();
-      setEditing(false);
-    });
-  }, [editable, registerDoneHandler]);
-
   // entry 바뀌면 초기화 (editable이면 새 entry로 갈 일 거의 없음)
   useEffect(() => {
     setContent(entry.content);
@@ -330,21 +329,14 @@ function EntryView({
     }, 0);
   }, [entry.id]);
 
-  // 자동저장 (editable만)
+  // 임시저장 — 수정 모드일 때만 드래프트에 기록. entry 본체는 안 건드림.
+  // 완료 누르기 전엔 어디서 다시 봐도 옛 값 그대로. 사고 대비용 보존이 목적.
   useEffect(() => {
-    if (!editable || firstRender.current) return;
+    if (!editable || !editing || firstRender.current) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(async () => {
       try {
-        const updated: DiaryEntry = {
-          ...entry,
-          content: content.trim() || entry.content,
-          weather,
-          mood,
-          updatedAt: new Date().toISOString(),
-        };
-        await upsertEntry(updated);
-        onUpdate?.(updated);
+        await saveDraft(entry.id, { content, weather, mood });
         setSavedAt(Date.now());
       } catch {
         // 조용히
@@ -353,13 +345,52 @@ function EntryView({
     return () => {
       if (saveTimer.current) clearTimeout(saveTimer.current);
     };
-  }, [content, weather, mood, editable, entry, onUpdate]);
+  }, [content, weather, mood, editable, editing, entry.id]);
 
-  const handleEnterEdit = useCallback(() => {
+  const handleEnterEdit = useCallback(async () => {
     if (!editable) return;
+    // 드래프트 있으면 복원 — 사용자가 이전에 임시저장한 변경부터 이어 편집
+    try {
+      const draft = await loadDraft(entry.id);
+      if (draft) {
+        if (draft.content !== undefined) setContent(draft.content);
+        if (draft.weather !== undefined) setWeather(draft.weather);
+        if (draft.mood !== undefined) setMood(draft.mood);
+      }
+    } catch {}
     setEditing(true);
     setTimeout(() => inputRef.current?.focus(), 0);
-  }, [editable]);
+  }, [editable, entry.id]);
+
+  // 완료 — entry 본체로 commit + 드래프트 정리 + 수정 종료
+  const commitEdit = useCallback(async () => {
+    Keyboard.dismiss();
+    try {
+      const updated: DiaryEntry = {
+        ...entry,
+        content: content.trim() || entry.content,
+        weather,
+        mood,
+        updatedAt: new Date().toISOString(),
+      };
+      await upsertEntry(updated);
+      await clearDraft(entry.id);
+      onUpdate?.(updated);
+    } catch {
+      // 조용히
+    }
+    setEditing(false);
+    setSavedAt(null);
+  }, [entry, content, weather, mood, onUpdate]);
+
+  // 키보드 바 완료 handler 등록 — chip 완료와 동일 동작 (commit).
+  // commitEdit deps에 포함 — content/weather/mood 변경 시 새 commitEdit 다시 등록.
+  useEffect(() => {
+    if (!editable) return;
+    registerDoneHandler?.(() => {
+      void commitEdit();
+    });
+  }, [editable, registerDoneHandler, commitEdit]);
 
   const imageUri = entry.imageLocalPath || entry.imageUrl;
   const linesHeight = lineYs.length > 0 ? lineYs[lineYs.length - 1] : BODY_LINE_HEIGHT;
@@ -378,10 +409,9 @@ function EntryView({
             <TouchableOpacity
               onPress={() => {
                 if (editing) {
-                  Keyboard.dismiss();
-                  setEditing(false);
+                  void commitEdit();
                 } else {
-                  handleEnterEdit();
+                  void handleEnterEdit();
                 }
               }}
               activeOpacity={0.6}
@@ -400,13 +430,14 @@ function EntryView({
           <View style={styles.chipWrap}>
             <TouchableOpacity
               onPress={() => {
-                if (!editable) return;
+                // 수정 모드에서만 변경 가능 — 완성된 일기 보호
+                if (!editable || !editing) return;
                 LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
                 setMoodOpen(false);
                 setWeatherOpen((v) => !v);
               }}
               activeOpacity={0.6}
-              disabled={!editable}
+              disabled={!editable || !editing}
               style={[styles.metaChip, weatherOpen && styles.metaChipActive]}
             >
               <Text style={styles.metaChipText}>{weather ?? '날씨'}</Text>
@@ -457,13 +488,14 @@ function EntryView({
           <View style={styles.chipWrap}>
             <TouchableOpacity
               onPress={() => {
-                if (!editable) return;
+                // 수정 모드에서만 변경 가능 — 완성된 일기 보호
+                if (!editable || !editing) return;
                 LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
                 setWeatherOpen(false);
                 setMoodOpen((v) => !v);
               }}
               activeOpacity={0.6}
-              disabled={!editable}
+              disabled={!editable || !editing}
               style={[
                 styles.metaChip,
                 moodOpen && styles.metaChipActive,
@@ -563,17 +595,22 @@ function EntryView({
             scrollEnabled={false}
             autoCorrect
             spellCheck
-            onBlur={() => setEditing(false)}
+            // 스크롤·다른 곳 터치로 키보드 내려가도 수정 모드는 유지 — 긴 일기 편집을 위해.
+            // 종료는 chip "완료" 또는 키보드 바 "완료" 누를 때만.
           />
         )}
       </View>
 
       {editable ? (
         <View style={styles.bottomRow}>
-          {savedAt ? (
-            <Text style={styles.savedLabel}>자동 저장됨</Text>
+          {editing ? (
+            savedAt ? (
+              <Text style={styles.savedLabel}>임시 저장됨 · 완료를 눌러야 저장돼요</Text>
+            ) : (
+              <Text style={styles.savedLabelMuted}>완료를 누르면 저장돼요</Text>
+            )
           ) : (
-            <Text style={styles.savedLabelMuted}>수정하면 자동으로 저장돼요</Text>
+            <Text style={styles.savedLabelMuted}>수정을 눌러 편집을 시작해요</Text>
           )}
           <TouchableOpacity
             onPress={onDelete}

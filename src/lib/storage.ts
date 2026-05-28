@@ -1,7 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { DiaryEntry } from '../types';
+import type { DiaryEntry, Weather, Mood } from '../types';
 
 const STORAGE_KEY = 'GRIM_entries';
+// 편집 중 임시저장 (commit 안 된 변경). entry id 별로 분리 저장 → 다중 entry 동시 편집 안전.
+const DRAFT_KEY_PREFIX = 'GRIM_draft:';
 
 export async function loadEntries(): Promise<DiaryEntry[]> {
   try {
@@ -56,6 +58,38 @@ export function getTodayDate(): string {
   const m = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
   return `${y}-${m}-${day}`;
+}
+
+// ─────────────────────────────────────────────────────────
+// Draft (임시저장) — 수정 모드 중 자동저장 대상.
+// upsertEntry 와 별개. 완료 버튼 누르기 전엔 entry 본체에 반영되지 않음.
+// ─────────────────────────────────────────────────────────
+export type EntryDraft = {
+  content?: string;
+  weather?: Weather | null;
+  mood?: Mood | null;
+  savedAt: string;
+};
+
+export async function loadDraft(entryId: string): Promise<EntryDraft | null> {
+  try {
+    const raw = await AsyncStorage.getItem(DRAFT_KEY_PREFIX + entryId);
+    return raw ? (JSON.parse(raw) as EntryDraft) : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function saveDraft(
+  entryId: string,
+  partial: Omit<EntryDraft, 'savedAt'>
+): Promise<void> {
+  const payload: EntryDraft = { ...partial, savedAt: new Date().toISOString() };
+  await AsyncStorage.setItem(DRAFT_KEY_PREFIX + entryId, JSON.stringify(payload));
+}
+
+export async function clearDraft(entryId: string): Promise<void> {
+  await AsyncStorage.removeItem(DRAFT_KEY_PREFIX + entryId);
 }
 
 export function formatDate(dateStr: string): string {
