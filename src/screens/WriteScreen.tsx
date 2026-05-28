@@ -12,6 +12,7 @@ import {
   View,
   Text,
   TextInput,
+  InputAccessoryView,
   TouchableOpacity,
   Image,
   ActivityIndicator,
@@ -545,6 +546,7 @@ export default function WriteScreen() {
               scrollEnabled={false}
               autoCorrect
               spellCheck
+              inputAccessoryViewID={Platform.OS === 'ios' ? 'grim-kb-done' : undefined}
               onBlur={() => setEditing(false)}
             />
           )}
@@ -608,14 +610,24 @@ export default function WriteScreen() {
       </ScrollView>
       </SafeAreaView>
 
-      {/* 키보드 toolbar: layout flow 안. KeyboardAvoidingView가 키보드만큼 padding 밀어줘서
-          이 bar가 자연히 키보드 top에 붙음. */}
-      {kbVisible && (
-        <View style={styles.kbBar}>
-          <TouchableOpacity onPress={handleDone} activeOpacity={0.6} hitSlop={10}>
-            <Text style={styles.kbBarDone}>완료</Text>
-          </TouchableOpacity>
-        </View>
+      {/* iOS = InputAccessoryView 로 시스템 액세서리 바를 우리 거로 대체 (이중 바·구분선 제거).
+          Android = 기존 floating bar 유지 (Android엔 InputAccessoryView 미지원). */}
+      {Platform.OS === 'ios' ? (
+        <InputAccessoryView nativeID="grim-kb-done">
+          <View style={styles.kbBar}>
+            <TouchableOpacity onPress={handleDone} activeOpacity={0.6} hitSlop={10}>
+              <Text style={styles.kbBarDone}>완료</Text>
+            </TouchableOpacity>
+          </View>
+        </InputAccessoryView>
+      ) : (
+        kbVisible && (
+          <View style={styles.kbBar}>
+            <TouchableOpacity onPress={handleDone} activeOpacity={0.6} hitSlop={10}>
+              <Text style={styles.kbBarDone}>완료</Text>
+            </TouchableOpacity>
+          </View>
+        )
       )}
     </KeyboardAvoidingView>
   );

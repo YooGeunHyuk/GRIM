@@ -22,6 +22,7 @@ import {
   Dimensions,
   Platform,
   KeyboardAvoidingView,
+  InputAccessoryView,
   Keyboard,
   Pressable,
   LayoutAnimation,
@@ -263,12 +264,24 @@ export default function DetailScreen() {
         </View>
       </SafeAreaView>
 
-      {kbVisible && (
-        <View style={styles.kbBar}>
-          <TouchableOpacity onPress={handleDone} activeOpacity={0.6} hitSlop={10}>
-            <Text style={styles.kbBarDone}>완료</Text>
-          </TouchableOpacity>
-        </View>
+      {/* iOS = InputAccessoryView 로 시스템 액세서리 바를 우리 거로 대체 (이중 바·구분선 제거).
+          Android = 기존 floating bar 유지 (Android엔 InputAccessoryView 미지원). */}
+      {Platform.OS === 'ios' ? (
+        <InputAccessoryView nativeID="grim-kb-done">
+          <View style={styles.kbBar}>
+            <TouchableOpacity onPress={handleDone} activeOpacity={0.6} hitSlop={10}>
+              <Text style={styles.kbBarDone}>완료</Text>
+            </TouchableOpacity>
+          </View>
+        </InputAccessoryView>
+      ) : (
+        kbVisible && (
+          <View style={styles.kbBar}>
+            <TouchableOpacity onPress={handleDone} activeOpacity={0.6} hitSlop={10}>
+              <Text style={styles.kbBarDone}>완료</Text>
+            </TouchableOpacity>
+          </View>
+        )
       )}
     </KeyboardAvoidingView>
   );
@@ -595,6 +608,8 @@ function EntryView({
             scrollEnabled={false}
             autoCorrect
             spellCheck
+            // iOS — 시스템 액세서리 바 대신 우리 InputAccessoryView 표시
+            inputAccessoryViewID={Platform.OS === 'ios' ? 'grim-kb-done' : undefined}
             // 스크롤·다른 곳 터치로 키보드 내려가도 수정 모드는 유지 — 긴 일기 편집을 위해.
             // 종료는 chip "완료" 또는 키보드 바 "완료" 누를 때만.
           />
